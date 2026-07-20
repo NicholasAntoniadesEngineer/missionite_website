@@ -1,0 +1,3 @@
+[submodule "lib/auth_db"]
+	path = lib/auth_db
+	url = https://github.com/NicholasAntoniadesEngineer/auth_db.git

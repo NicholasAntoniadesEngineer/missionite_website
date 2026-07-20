@@ -1,0 +1,137 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Missionite — your space project, review-ready</title>
+<meta name="description" content="Missionite — the ECSS document set, assembled, tracked, delivered.">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/favicon.svg">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Missionite — your space project, review-ready">
+<meta property="og:description" content="The ECSS document set — assembled, tracked, delivered.">
+<meta property="og:image" content="assets/logo-mark.svg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+
+<style>
+  /* index.html composition only */
+  .hero { text-align: center; padding-block: clamp(56px, 8vw, 104px) clamp(32px, 5vw, 56px); }
+  .hero-mark { width: 72px; height: 72px; margin: 0 auto 1.4rem; }
+  .hero-eyebrow {
+    font-size: .82rem; font-weight: 700; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 .9rem;
+  }
+  .hero-sub {
+    font-size: clamp(1.05rem, 1.9vw, 1.2rem);
+    color: var(--muted);
+    max-width: 640px;
+    margin: 1.1rem auto 0;
+  }
+  .hero-actions {
+    display: flex; flex-wrap: wrap; gap: .8rem;
+    justify-content: center; margin-top: 2rem;
+  }
+  .invite-note { font-size: .92rem; color: var(--muted); margin: 1.15rem auto 0; max-width: 560px; }
+  .invite-note a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-tint); }
+  .invite-note a:hover { border-bottom-color: var(--accent); }
+
+  /* Features — five quiet labels, per the approved artboards */
+  .feature-grid {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    column-gap: clamp(28px, 5vw, 56px); row-gap: 18px;
+    max-width: 820px; margin: 0 auto;
+  }
+  .feature {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 1.02rem; font-weight: 500; color: var(--text);
+  }
+  .feature-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-tint);
+    flex: none;
+  }
+  .ecss-line { text-align: center; margin: 2rem 0 0; font-size: .95rem; }
+
+  /* CTA band */
+  .cta { text-align: center; }
+  .cta .h-section { margin-bottom: 1.4rem; }
+  .cta-actions { display: flex; justify-content: center; margin-top: .4rem; }
+
+</style>
+
+<nav class="nav">
+  <div class="container nav-inner">
+    <a class="nav-brand" href="index.html">
+      <img src="assets/logo-mark.svg" alt="">
+      <span>Missionite</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#features">Features</a>
+      <a href="download.html">Download</a>
+      <a class="btn btn-ghost" href="account.html">Sign in</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <img class="hero-mark" src="assets/logo-mark.svg" alt="Missionite">
+    <p class="hero-eyebrow">Missionite</p>
+    <h1 class="h-hero">Your space project, review-ready</h1>
+    <p class="hero-sub">The ECSS document set — assembled, tracked, delivered.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="download.html">Sign in to download</a>
+      <a class="btn btn-ghost" href="#features">See features</a>
+    </div>
+    <p class="invite-note">
+      Access is currently invite-only —
+      <a href="mailto:nickantoniades11@gmail.com?subject=Missionite%20demo%20access">contact us to request a demo account</a>.
+    </p>
+  </div>
+</header>
+
+
+
+<section class="section" id="features">
+  <div class="container">
+    <div class="feature-grid">
+      <div class="feature"><span class="feature-dot" aria-hidden="true"></span>Document matrix</div>
+      <div class="feature"><span class="feature-dot" aria-hidden="true"></span>Living documents</div>
+      <div class="feature"><span class="feature-dot" aria-hidden="true"></span>Verification</div>
+      <div class="feature"><span class="feature-dot" aria-hidden="true"></span>Project checks</div>
+      <div class="feature"><span class="feature-dot" aria-hidden="true"></span>Delivery packages</div>
+    </div>
+    <p class="muted ecss-line">Built on the ECSS standard.</p>
+  </div>
+</section>
+
+<section class="section-alt cta">
+  <div class="container">
+    <h2 class="h-section">Ready for your next review?</h2>
+    <div class="cta-actions">
+      <a class="btn btn-primary" href="download.html">Sign in to download</a>
+    </div>
+    <p class="invite-note">
+      Access is currently invite-only —
+      <a href="mailto:nickantoniades11@gmail.com?subject=Missionite%20demo%20access">contact us to request a demo account</a>.
+    </p>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <img src="assets/logo-mark.svg" alt="">
+      <span>© 2026 Missionite</span>
+    </div>
+    <nav class="footer-links">
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="mailto:nickantoniades11@gmail.com">Contact</a>
+    </nav>
+  </div>
+</footer>
