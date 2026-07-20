@@ -177,6 +177,7 @@ catalog. Both run **locally** (never in CI, never committed).
 assets to the GitHub Release for the current tag (e.g. `v5.3`):
 
 ```bash
+# Canonical, always-current version of this loop: ECSS_framework/docs/RELEASING.md
 bash build/mac/publish-mac.sh          # produces dist/Missionite <tag> ….dmg
 bash build/windows/publish-win.sh      # produces dist/Missionite <tag> ….exe
 bash build/publish-github-release.sh   # uploads both as release assets (skips the Licence Minter)
