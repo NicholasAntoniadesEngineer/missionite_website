@@ -148,17 +148,22 @@ for pair in "asset_id:$MAC_ID" "file_size:$MAC_SIZE" "asset_id:$WIN_ID" "file_si
 done
 
 # ---- sha256 from the local dist artifact, if it is still on disk ----
-sha_for() {
-  local name="$1" path="$DIST_DIR/$1"
-  if [ -f "$path" ]; then
-    file_sha256 "$path"
+# GitHub replaces spaces in asset names with dots ("Missionite v5.4 ….dmg" uploads as
+# "Missionite.v5.4.….dmg"), so the asset name never matches the on-disk file. Instead glob
+# the local file the SAME way build/publish-github-release.sh picked it: newest
+# "Missionite <TAG> *<suffix>" excluding the Licence Minter.
+sha_for_suffix() {
+  local suffix="$1" f
+  f=$(ls -t "$DIST_DIR"/"Missionite ${TAG} "*"$suffix" 2>/dev/null | grep -v "Licence Minter" | head -1 || true)
+  if [ -n "$f" ] && [ -f "$f" ]; then
+    file_sha256 "$f"
   else
-    echo "Warning: local file not found for sha256, storing empty: $path" >&2
+    echo "Warning: no local ${suffix} in $DIST_DIR for ${TAG}; storing empty sha256." >&2
     printf ''
   fi
 }
-MAC_SHA="$(sha_for "$MAC_NAME")"
-WIN_SHA="$(sha_for "$WIN_NAME")"
+MAC_SHA="$(sha_for_suffix '.dmg')"
+WIN_SHA="$(sha_for_suffix '.exe')"
 
 # ---- escape strings for JSON ----
 VERSION_ESC="$(json_escape "$VERSION")"
