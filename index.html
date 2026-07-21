@@ -18,7 +18,7 @@
 
   /* Signed-out: a single centred card, brand above it — the whole page. */
   .mi-gate { min-height: 78vh; display: flex; flex-direction: column;
-             align-items: center; justify-content: center; gap: 22px; padding: 40px 0; }
+             align-items: center; justify-content: center; gap: 22px; padding: 40px 20px; }
   .mi-gate-brand { display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .mi-gate-brand img { width: 44px; height: 44px; }
   .mi-gate-brand span { font-size: 1.05rem; font-weight: 500; letter-spacing: .2px; }
@@ -31,22 +31,25 @@
   .mi-foot a { color: var(--muted); text-decoration: none; }
   .mi-foot a:hover { color: var(--accent); }
 
-  /* Signed-in workspace: a slim bar, then the releases. */
+  /* Signed-in workspace: a slim bar, then the releases. Bar never collides:
+     the brand and Sign-out are fixed width; the email is the only flexible part,
+     truncating with an ellipsis and hidden on phones. */
   .mi-bar { display: flex; align-items: center; justify-content: space-between;
-            padding: 18px 0; border-bottom: 1px solid var(--hairline); }
-  .mi-bar-brand { display: flex; align-items: center; gap: 9px; font-weight: 500; }
+            gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--hairline); }
+  .mi-bar-brand { flex: 0 0 auto; display: flex; align-items: center; gap: 9px; font-weight: 500; }
   .mi-bar-brand img { width: 24px; height: 24px; }
-  .mi-who { display: flex; align-items: center; gap: 16px; }
-  .mi-who .mi-email { color: var(--muted); font-size: .9rem; }
+  .mi-who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .mi-who .btn { flex: 0 0 auto; }
+  .mi-who .mi-email { min-width: 0; color: var(--muted); font-size: .9rem;
+                      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .mi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
   .mi-platform .h-section { margin: 0 0 4px; }
   .mi-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 8px 0 16px; }
-  .mi-tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  code.mi-sha { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-                font-size: 12px; word-break: break-all; }
-  .mi-dlcell { white-space: nowrap; }
-  .mi-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-           overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+  /* Phones: the long email is hidden — brand + Sign out is enough on a narrow bar. */
+  @media (max-width: 640px) {
+    .mi-who .mi-email { display: none; }
+  }
 </style>
 
 <!-- ============ LOADING ============ -->
@@ -81,10 +84,7 @@
     </div>
   </div>
 
-  <p class="muted" style="font-size:.85rem;">
-    Invite-only —
-    <a href="mailto:nickantoniades11@gmail.com?subject=Missionite%20demo%20account%20request">request access</a>.
-  </p>
+  <p class="muted" style="font-size:.85rem;">Invite-only.</p>
   <div class="mi-foot">
     <a href="privacy.html">Privacy</a>
     <a href="terms.html">Terms</a>
@@ -136,24 +136,7 @@
       </div>
 
       <div id="rel-latest-wrap" class="mi-hide">
-        <h2 class="h-section" style="margin-top:0;">Latest release</h2>
         <div class="mi-grid" id="rel-latest"></div>
-      </div>
-
-      <div id="rel-previous-wrap" class="mi-hide" style="margin-top:34px;">
-        <h2 class="h-section">Previous versions</h2>
-        <div class="mi-tablewrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">Version</th><th scope="col">Platform</th><th scope="col">Size</th>
-                <th scope="col">Date</th><th scope="col">SHA-256</th><th scope="col">Notes</th>
-                <th scope="col"><span class="mi-sr">Download</span></th>
-              </tr>
-            </thead>
-            <tbody id="rel-previous"></tbody>
-          </table>
-        </div>
       </div>
     </main>
 
@@ -163,7 +146,6 @@
         <nav class="footer-links">
           <a href="privacy.html">Privacy</a>
           <a href="terms.html">Terms</a>
-          <a href="mailto:nickantoniades11@gmail.com">Contact</a>
         </nav>
       </div>
     </footer>
@@ -293,36 +275,20 @@
         'Download for ' + esc(platformLabel(r.platform)) + '</button>';
     return card;
   }
-  function previousRow(r) {
-    var esc = SA.escapeHtml;
-    var tr = document.createElement('tr');
-    tr.innerHTML =
-      '<td>' + esc(r.version) + '</td>' +
-      '<td>' + esc(platformLabel(r.platform)) + '</td>' +
-      '<td>' + esc(SA.formatBytes(r.file_size)) + '</td>' +
-      '<td>' + esc(SA.formatDate(r.published_at)) + '</td>' +
-      '<td><code class="mi-sha">' + esc(r.sha256 || '—') + '</code></td>' +
-      '<td>' + esc(r.notes || '') + '</td>' +
-      '<td class="mi-dlcell"><button class="btn btn-ghost" type="button" data-download data-release-id="' + esc(r.id) + '">Download</button></td>';
-    return tr;
-  }
+  // Only the latest build per platform is shown — no version history.
   function renderReleases(rows) {
-    var latestWrap = $('rel-latest-wrap'), prevWrap = $('rel-previous-wrap'), emptyEl = $('rel-empty');
+    var latestWrap = $('rel-latest-wrap'), emptyEl = $('rel-empty');
     if (!rows || rows.length === 0) {
-      emptyEl.classList.remove('mi-hide'); latestWrap.classList.add('mi-hide'); prevWrap.classList.add('mi-hide'); return;
+      emptyEl.classList.remove('mi-hide'); latestWrap.classList.add('mi-hide'); return;
     }
     emptyEl.classList.add('mi-hide');
-    var shown = {}, shownIds = {};
-    rows.forEach(function (r) { if (r.platform && !shown[r.platform]) { shown[r.platform] = r; shownIds[r.id] = true; } });
+    var shown = {};   // platform -> newest row (rows arrive newest-first)
+    rows.forEach(function (r) { if (r.platform && !shown[r.platform]) shown[r.platform] = r; });
     var latestEl = $('rel-latest'); latestEl.innerHTML = '';
     var order = ['mac', 'win'].concat(Object.keys(shown).filter(function (p) { return p !== 'mac' && p !== 'win'; }));
-    var anyLatest = false;
-    order.forEach(function (p) { if (shown[p]) { latestEl.appendChild(latestCard(shown[p])); anyLatest = true; } });
-    latestWrap.classList.toggle('mi-hide', !anyLatest);
-    var previous = rows.filter(function (r) { return !shownIds[r.id]; });
-    var prevBody = $('rel-previous'); prevBody.innerHTML = '';
-    previous.forEach(function (r) { prevBody.appendChild(previousRow(r)); });
-    prevWrap.classList.toggle('mi-hide', previous.length === 0);
+    var any = false;
+    order.forEach(function (p) { if (shown[p]) { latestEl.appendChild(latestCard(shown[p])); any = true; } });
+    latestWrap.classList.toggle('mi-hide', !any);
   }
   async function loadReleases() {
     setErr('');
@@ -388,7 +354,7 @@
     if (!res.configured) {
       show('signin');
       submitBtn.disabled = true; forgotToggle.disabled = true;
-      setMsg(siNote, 'Sign-in isn’t configured yet. (The site owner must add the Supabase project keys in js/supabase-config.js.)', true);
+      setMsg(siNote, 'Sign-in is temporarily unavailable. Please try again later.', true);
       return;
     }
 
