@@ -1,12 +1,6 @@
-/* ==========================================================================
-   Missionite — shared design system
-   Owned by Worker A. Consumers must only use the documented contract classes:
-   .container .nav .nav-links .btn .btn-primary .btn-ghost .card .section
-   .section-alt .h-hero .h-section .muted .field .label .input .form-error
-   .form-note .table .badge .footer
-   Page-specific composition belongs in a small <style> in that page's <head>.
-   Light theme throughout.
-   ========================================================================== */
+/* Shared design system. Contract classes: .container .nav .nav-inner .nav-brand .btn
+   .btn-primary .btn-ghost .card .section .h-hero .h-section .muted .field .label .input
+   .form-error .form-note .badge .footer. Page-local composition goes in that page's <style>. */
 
 :root {
   --accent:        #1F4E79;   /* deep blue */
@@ -61,11 +55,6 @@ p { margin: 0 0 1rem; }
 }
 
 .section       { padding-block: clamp(48px, 7vw, 88px); }
-.section-alt   {
-  padding-block: clamp(48px, 7vw, 88px);
-  background: var(--bg-alt);
-  border-block: 1px solid var(--hairline);
-}
 
 /* ---- Type helpers ----------------------------------------------------- */
 .h-hero {
@@ -113,20 +102,6 @@ p { margin: 0 0 1rem; }
   text-decoration: none;
 }
 .nav-brand img { width: 28px; height: 28px; }
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 1.6rem;
-  flex-wrap: wrap;
-}
-.nav-links a:not(.btn) {
-  color: var(--muted);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: .98rem;
-  transition: color .15s ease;
-}
-.nav-links a:not(.btn):hover { color: var(--text); }
 
 /* ---- Buttons ---------------------------------------------------------- */
 .btn {
@@ -193,23 +168,6 @@ p { margin: 0 0 1rem; }
 }
 .form-error { color: var(--error); font-size: .9rem; margin: 0; }
 .form-note  { color: var(--muted); font-size: .9rem; margin: 0; }
-
-/* ---- Table ------------------------------------------------------------ */
-.table { width: 100%; border-collapse: collapse; font-size: .96rem; }
-.table th, .table td {
-  text-align: left;
-  padding: .7rem .9rem;
-  border-bottom: 1px solid var(--hairline);
-  vertical-align: top;
-}
-.table th {
-  font-weight: 500;
-  font-size: .78rem;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.table tr:last-child td { border-bottom: 0; }
 
 /* ---- Badge ------------------------------------------------------------ */
 .badge {
@@ -286,10 +244,7 @@ select:focus-visible {
 /* ---- Small screens: nav wraps gracefully (no JS hamburger) ------------ */
 @media (max-width: 720px) {
   .nav-inner { min-height: 0; }
-  .nav-links { gap: 1.1rem; width: 100%; }
   .btn { padding: .58rem 1.15rem; }
-  .table { font-size: .9rem; }
-  .table th, .table td { padding: .6rem .7rem; }
 }
 
 /* Phones: a touch smaller base + tighter gutters so nothing feels oversized. */
@@ -301,10 +256,10 @@ select:focus-visible {
 
 /* ---- Print: sane legal pages ------------------------------------------ */
 @media print {
-  .nav, .footer, .no-print { display: none !important; }
+  .nav, .footer { display: none !important; }
   body { font-size: 11.5pt; color: #000; background: #fff; }
   a { color: #000; text-decoration: underline; }
-  .section, .section-alt {
+  .section {
     padding-block: 0;
     background: #fff;
     border: 0;

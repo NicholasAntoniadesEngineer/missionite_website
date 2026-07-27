@@ -33,10 +33,10 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload artifact (static root)
+      - name: Upload artifact (src/ is the site root)
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: src
 
       - name: Deploy to GitHub Pages
         id: deployment

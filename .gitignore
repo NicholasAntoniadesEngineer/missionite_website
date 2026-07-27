@@ -1,5 +1,5 @@
-# OS junk only. Do NOT ignore lib/ — the auth_db submodule lives there and
-# must stay tracked so the Pages build (checkout submodules: recursive) works.
+# Do NOT ignore src/lib/ — the auth_db submodule lives there and must stay tracked so the
+# Pages build (checkout submodules: recursive) works.
 
 # macOS
 .DS_Store
@@ -15,4 +15,28 @@ Desktop.ini
 
 # Editor scratch
 *~
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
 .claude/
+.idea/
+.vscode/
+
+# Dependencies (none today; nothing here is ever deployed)
+node_modules/
+
+# Supabase CLI local state — machine-specific link/version cache, not repo content
+supabase/.temp/
+
+# Secrets — the publishable/anon key in src/js/supabase-config.js is public BY DESIGN;
+# nothing else belongs in this repo. Service-role keys and PATs are set in the
+# Supabase dashboard and the shell that runs register-release.sh.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json

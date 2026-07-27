@@ -45,6 +45,8 @@
   .mi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
   .mi-platform .h-section { margin: 0 0 4px; }
   .mi-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 8px 0 16px; }
+  /* First-launch note under a download button (macOS Gatekeeper allow-once). */
+  .mi-note { margin: 10px 0 0; font-size: .8rem; line-height: 1.45; }
 
   /* Phones: the long email is hidden — brand + Sign out is enough on a narrow bar. */
   @media (max-width: 640px) {
@@ -272,7 +274,14 @@
       '</div>' +
       (r.notes ? '<p class="muted">' + esc(r.notes) + '</p>' : '') +
       '<button class="btn btn-primary mi-block" type="button" data-download data-release-id="' + esc(r.id) + '">' +
-        'Download for ' + esc(platformLabel(r.platform)) + '</button>';
+        'Download for ' + esc(platformLabel(r.platform)) + '</button>' +
+      // The macOS build is ad-hoc signed (not yet notarized), so a downloaded copy is quarantined. macOS 15+ removed the right-click>Open bypass, so the Settings allow is the flow that works.
+      (r.platform === 'mac'
+        ? '<p class="muted mi-note">Unzip and move the app to Applications. macOS blocks it the first time: open ' +
+          '<strong>System Settings &rsaquo; Privacy &amp; Security</strong>, scroll to Security and click ' +
+          '<strong>Open Anyway</strong>, then launch it again. Once per copy.<br>' +
+          'Terminal alternative: <code>xattr -dr com.apple.quarantine "/Applications/Missionite.app"</code></p>'
+        : '');
     return card;
   }
   // Only the latest build per platform is shown — no version history.
