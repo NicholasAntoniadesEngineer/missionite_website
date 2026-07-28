@@ -33,10 +33,25 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload artifact (src/ is the site root)
+      - name: Stage artifact (all of src/ except auth_db, plus only the auth_db files the site loads)
+        run: |
+          set -euo pipefail
+          rsync -a --exclude 'lib/auth_db/' src/ "$RUNNER_TEMP/site/"
+          for f in \
+            lib/auth_db/shared/vendor/supabase/supabase.min.js \
+            lib/auth_db/shared/services/authService.js
+          do
+            mkdir -p "$RUNNER_TEMP/site/$(dirname "$f")"
+            cp "src/$f" "$RUNNER_TEMP/site/$f"
+          done
+
+      - name: Check every local reference resolves inside the staged tree
+        run: python3 scripts/check-refs.py "$RUNNER_TEMP/site"
+
+      - name: Upload artifact (staged site root)
         uses: actions/upload-pages-artifact@v3
         with:
-          path: src
+          path: ${{ runner.temp }}/site
 
       - name: Deploy to GitHub Pages
         id: deployment

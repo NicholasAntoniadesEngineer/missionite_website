@@ -394,6 +394,11 @@ git commit -m "Add auth_db submodule"
 Make sure your Pages deploy checks out submodules — the workflow's checkout step
 must use `with: { submodules: recursive }` (`.github/workflows/deploy.yml` already does).
 
+The checkout is not the artifact. The workflow's staging step copies only the submodule
+files the site loads, so the submodule's internal documents are never published; a page
+that starts loading another submodule file needs that path added to the list in the
+workflow, and the deploy's reference check fails until it is (README, "Deployment").
+
 ---
 
 ## 12. Enable GitHub Pages (GitHub Actions source)

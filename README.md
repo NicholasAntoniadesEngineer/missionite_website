@@ -13,7 +13,7 @@ workspace. Access is **invite-only**; there is no public registration anywhere.
 ## Layout
 
 ```
-src/                    The deployed site — this folder IS the Pages artifact root
+src/                    The site source — the Pages artifact is staged from here
   index.html            The whole site: sign-in gate + download workspace
   privacy.html          Privacy (invite-only demo)
   terms.html            Evaluation terms
@@ -27,12 +27,13 @@ supabase/               Backend definition (see below)
   functions/            activate + get-download edge functions
   queries/              Copy-paste operator SQL (grant, revoke, pin, status, floor)
 docs/                   SETUP.md, DEPLOY_RUNBOOK.md, LIVE_CONFIG_CHECKS.md
-scripts/                register-release.sh
+scripts/                register-release.sh, check-refs.py (deploy reference gate)
 .github/workflows/      GitHub Pages deploy
 ```
 
-Nothing outside `src/` is deployed. Every `src=`/`href=` in the pages is relative and
-stays inside `src/`, so the folder serves standalone.
+Nothing outside `src/` is deployed, and not all of `src/` is either — the submodule is
+filtered down to the two files the site loads (see "Deployment"). Every `src=`/`href=` in
+the pages is relative and stays inside `src/`, so the folder serves standalone.
 
 ## Auth substrate (submodule)
 
@@ -49,7 +50,9 @@ upstream. `src/js/site-auth.js` neuters `AuthService._redirectToSignIn` at load:
 submodule bounces signed-out visitors to a login page this site does not have, and the
 gate is rendered in-page instead.
 
-The deploy checks it out with `submodules: recursive` (see `.github/workflows/deploy.yml`).
+The deploy checks it out with `submodules: recursive` and then publishes only the two
+files `index.html` loads; the rest of the submodule — including its internal
+security-audit markdown — never reaches the artifact. See "Deployment".
 
 ## Local preview
 
@@ -118,8 +121,25 @@ One-time: repo **Settings → Pages → Source: GitHub Actions** (with the defau
 branch-based source, Pages runs its own Jekyll build, which cannot resolve the
 submodule and fails).
 
-Then just push to `main`. The workflow checks out (with submodules), uploads **`src/`**
-as the Pages artifact, and deploys — no build step.
+Then just push to `main`. The workflow (`.github/workflows/deploy.yml`) checks out with
+submodules, stages the artifact into `$RUNNER_TEMP/site`, uploads that, and deploys — no
+build step.
+
+The staged artifact is all of `src/` except `src/lib/auth_db`, plus exactly the submodule
+files the site loads:
+
+```
+lib/auth_db/shared/vendor/supabase/supabase.min.js
+lib/auth_db/shared/services/authService.js
+```
+
+Uploading `src/` directly would publish the submodule's ~100 other files, which include
+its internal security-audit documents. When a page starts loading another submodule file,
+add it to that list in the workflow — the next step resolves every local
+`href`/`src`/`import`/`url()` in the staged tree and fails the deploy on any that misses,
+so a loaded-but-unlisted file is caught instead of 404-ing in the browser. It checks the
+staged tree, not `src/`: raw `src/` carries the submodule's Node test files, whose
+`require('fs')`-style specifiers are not site references.
 
 ## Releases
 
