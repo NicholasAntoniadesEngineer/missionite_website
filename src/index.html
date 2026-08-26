@@ -1,372 +1,146 @@
-<!-- Missionite — one gated page: a signed-out visitor sees ONLY the sign-in card;
-     a signed-in user sees the download workspace. No marketing, no public registration. -->
+<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Missionite</title>
-<meta name="description" content="Sign in to download the Missionite desktop app. Access is invite-only.">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="description" content="Missionite carries a space project's ECSS document set from one review to the next.">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14171A" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="assets/favicon.svg">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="styles.css">
-<style>
-  /* Page-local only (mi- prefixed; never global). */
-  .mi-hide { display: none !important; }
-  .mi-block { width: 100%; }
 
-  /* Signed-out: a single centred card, brand above it — the whole page. */
-  .mi-gate { min-height: 78vh; display: flex; flex-direction: column;
-             align-items: center; justify-content: center; gap: 22px; padding: 40px 20px; }
-  .mi-gate-brand { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-  .mi-gate-brand img { width: 44px; height: 44px; }
-  .mi-gate-brand span { font-size: 1.05rem; font-weight: 500; letter-spacing: .2px; }
-  .mi-card { width: 100%; max-width: 380px; }
-  .mi-card .field { margin-bottom: 14px; }
-  .mi-linkbtn { background: none; border: 0; padding: 0; font: inherit;
-                color: var(--accent); cursor: pointer; }
-  .mi-linkbtn:hover { text-decoration: underline; }
-  .mi-foot { display: flex; gap: 18px; font-size: .85rem; }
-  .mi-foot a { color: var(--muted); text-decoration: none; }
-  .mi-foot a:hover { color: var(--accent); }
+<body class="themed">
 
-  /* Signed-in workspace: a slim bar, then the releases. Bar never collides:
-     the brand and Sign-out are fixed width; the email is the only flexible part,
-     truncating with an ellipsis and hidden on phones. */
-  .mi-bar { display: flex; align-items: center; justify-content: space-between;
-            gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--hairline); }
-  .mi-bar-brand { flex: 0 0 auto; display: flex; align-items: center; gap: 9px; font-weight: 500; }
-  .mi-bar-brand img { width: 24px; height: 24px; }
-  .mi-who { display: flex; align-items: center; gap: 12px; min-width: 0; }
-  .mi-who .btn { flex: 0 0 auto; }
-  .mi-who .mi-email { min-width: 0; color: var(--muted); font-size: .9rem;
-                      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .mi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-  .mi-platform .h-section { margin: 0 0 4px; }
-  .mi-meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 8px 0 16px; }
-  /* First-launch note under a download button (macOS Gatekeeper allow-once). */
-
-  /* Phones: the long email is hidden — brand + Sign out is enough on a narrow bar. */
-  @media (max-width: 640px) {
-    .mi-who .mi-email { display: none; }
-  }
-</style>
-
-<!-- ============ LOADING ============ -->
-<section id="state-loading" class="mi-gate" aria-live="polite">
-  <p class="muted">Loading…</p>
-</section>
-
-<!-- ============ SIGN IN (parse-time default so password managers offer autofill) ============ -->
-<section id="state-signin" class="mi-gate mi-hide">
-  <div class="mi-gate-brand">
-    <img src="assets/logo-mark.svg" alt="">
-    <span>Missionite</span>
-  </div>
-
-  <div class="card mi-card" aria-labelledby="signin-h">
-    <h1 id="signin-h" class="h-section" style="margin-top:0;">Sign in</h1>
-    <form id="signin-form" novalidate>
-      <div class="field">
-        <label class="label" for="email">Email</label>
-        <input class="input mi-block" type="email" id="email" name="email" autocomplete="username" required>
-      </div>
-      <div class="field" id="password-field">
-        <label class="label" for="password">Password</label>
-        <input class="input mi-block" type="password" id="password" name="password" autocomplete="current-password" required>
-      </div>
-      <p class="form-error mi-hide" id="signin-error" role="alert"></p>
-      <p class="form-note mi-hide" id="signin-note" role="status"></p>
-      <button class="btn btn-primary mi-block" type="submit" id="signin-submit">Sign in</button>
-    </form>
-    <div style="margin-top:14px;">
-      <button class="mi-linkbtn" type="button" id="forgot-toggle">Forgot password?</button>
+<nav class="nav">
+  <div class="container nav-inner">
+    <a class="nav-brand" href="index.html">
+      <img src="assets/logo-mark.svg" alt="">
+      <span>Missionite</span>
+    </a>
+    <div class="ld-navlinks">
+      <a href="#features">Features</a>
+      <a class="btn btn-primary ld-btn" href="download.html">Download</a>
     </div>
   </div>
+</nav>
 
-  <p class="muted" style="font-size:.85rem;">Invite-only.</p>
-  <div class="mi-foot">
+<header class="ld-hero">
+  <div class="container">
+    <p class="ld-eyebrow">ECSS project documentation</p>
+    <h1>The document set, under control.</h1>
+    <p class="ld-sub">Missionite carries a space project&rsquo;s ECSS document set from one review
+    to the next. Documents stay current, evidence stays attached, packages ship signed.</p>
+    <div class="ld-ctas">
+      <a class="btn btn-primary ld-btn" href="download.html">Download</a>
+      <a class="btn btn-ghost ld-btn" href="#features">See the app</a>
+      <span class="ld-gate">Sign-in required &middot; access by invitation</span>
+    </div>
+  </div>
+</header>
+
+<div id="features">
+  <section class="ld-feature alt">
+    <div class="container ld-frow">
+      <div class="ld-copy">
+        <p class="ld-eyebrow">Document Matrix</p>
+        <h2>Every document, every milestone</h2>
+        <p class="ld-body">The whole ECSS set on one grid — what exists, what is due and what carried forward, from PRP to MCR.</p>
+      </div>
+      <figure class="ld-shot">
+        <picture>
+          <source srcset="assets/shots/document-matrix-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="assets/shots/document-matrix-light.png" alt="Document Matrix" loading="eager">
+        </picture>
+      </figure>
+    </div>
+  </section>
+  <section class="ld-feature">
+    <div class="container ld-frow">
+      <div class="ld-copy">
+        <p class="ld-eyebrow">Project Data</p>
+        <h2>One place for project facts</h2>
+        <p class="ld-body">Values entered once flow into every document. Role holders and their duties live beside the data they sign.</p>
+      </div>
+      <figure class="ld-shot">
+        <picture>
+          <source srcset="assets/shots/project-data-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="assets/shots/project-data-light.png" alt="Project Data" loading="lazy">
+        </picture>
+      </figure>
+    </div>
+  </section>
+  <section class="ld-feature alt">
+    <div class="container ld-frow">
+      <div class="ld-copy">
+        <p class="ld-eyebrow">Project Documents</p>
+        <h2>Living documents</h2>
+        <p class="ld-body">Generated from project data and regenerated after any change, so the set never drifts out of step.</p>
+      </div>
+      <figure class="ld-shot">
+        <picture>
+          <source srcset="assets/shots/documents-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="assets/shots/documents-light.png" alt="Project Documents" loading="lazy">
+        </picture>
+      </figure>
+    </div>
+  </section>
+  <section class="ld-feature">
+    <div class="container ld-frow">
+      <div class="ld-copy">
+        <p class="ld-eyebrow">Verification Matrix</p>
+        <h2>Requirements to evidence</h2>
+        <p class="ld-body">Method, status, notes and attached evidence for every requirement, closed out group by group.</p>
+      </div>
+      <figure class="ld-shot">
+        <picture>
+          <source srcset="assets/shots/verification-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="assets/shots/verification-light.png" alt="Verification Matrix" loading="lazy">
+        </picture>
+      </figure>
+    </div>
+  </section>
+  <section class="ld-feature alt">
+    <div class="container ld-frow">
+      <div class="ld-copy">
+        <p class="ld-eyebrow">Data Packages</p>
+        <h2>Reviews signed and shipped</h2>
+        <p class="ld-body">Assemble the delivery package, gather close-out signatures from the roles your project configures, export one zip.</p>
+      </div>
+      <figure class="ld-shot">
+        <picture>
+          <source srcset="assets/shots/packages-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="assets/shots/packages-light.png" alt="Data Packages" loading="lazy">
+        </picture>
+      </figure>
+    </div>
+  </section>
+</div>
+
+<section class="ld-index">
+  <div class="container">
+    <p class="ld-eyebrow">Also in the app</p>
+    <div class="ld-ixgrid"><div class="ld-ix"><span class="ld-ixname">Activity trail</span><span class="ld-ixdesc">Every change on the project, grouped and attributable.</span></div><div class="ld-ix"><span class="ld-ixname">Project checks</span><span class="ld-ixdesc">Readiness rules run against the live data before each review.</span></div><div class="ld-ix"><span class="ld-ixname">Merge review</span><span class="ld-ixdesc">When a copy of the workspace comes back, every difference is laid out to accept or decline.</span></div><div class="ld-ix"><span class="ld-ixname">ECSS library & wiki</span><span class="ld-ixdesc">Links out to the standards each document answers to.</span></div><div class="ld-ix"><span class="ld-ixname">Portable workspaces</span><span class="ld-ixdesc">A folder on disk, a shared drive or a USB stick.</span></div><div class="ld-ix"><span class="ld-ixname">RID log</span><span class="ld-ixdesc">Review item discrepancies tracked to closure per milestone.</span></div></div>
+  </div>
+</section>
+
+<section class="ld-dl">
+  <div class="container ld-dlrow">
+    <div>
+      <h2>Download for macOS and Windows</h2>
+      <p>Access is by invitation. Sign in with your invited account to download.</p>
+    </div>
+    <a class="btn btn-primary ld-btn" href="download.html">Sign in to download</a>
+  </div>
+</section>
+
+<footer class="ld-foot-band">
+  <div class="container ld-foot">
+    <span>Missionite</span>
+    <span class="ld-spacer"></span>
     <a href="privacy.html">Privacy</a>
     <a href="terms.html">Terms</a>
   </div>
-</section>
-
-<!-- ============ RECOVERY (set a new password from a reset link) ============ -->
-<section id="state-recovery" class="mi-gate mi-hide">
-  <div class="mi-gate-brand">
-    <img src="assets/logo-mark.svg" alt="">
-    <span>Missionite</span>
-  </div>
-  <div class="card mi-card" aria-labelledby="recovery-h">
-    <h1 id="recovery-h" class="h-section" style="margin-top:0;">Set a new password</h1>
-    <p class="muted" style="margin-top:0;">At least 12 characters.</p>
-    <form id="recovery-form" novalidate>
-      <div class="field">
-        <label class="label" for="new-password">New password</label>
-        <input class="input mi-block" type="password" id="new-password" name="new-password" autocomplete="new-password" required minlength="12">
-      </div>
-      <div class="field">
-        <label class="label" for="confirm-password">Confirm</label>
-        <input class="input mi-block" type="password" id="confirm-password" name="confirm-password" autocomplete="new-password" required minlength="12">
-      </div>
-      <p class="form-error mi-hide" id="recovery-error" role="alert"></p>
-      <p class="form-note mi-hide" id="recovery-note" role="status"></p>
-      <button class="btn btn-primary mi-block" type="submit" id="recovery-submit">Update password</button>
-    </form>
-    <button class="btn btn-primary mi-block mi-hide" id="recovery-continue" type="button" style="margin-top:12px;">Continue</button>
-  </div>
-</section>
-
-<!-- ============ WORKSPACE (signed in) ============ -->
-<section id="state-workspace" class="mi-hide">
-  <div class="container">
-    <div class="mi-bar">
-      <span class="mi-bar-brand"><img src="assets/logo-mark.svg" alt="">Missionite</span>
-      <span class="mi-who">
-        <span class="mi-email" id="ws-email">…</span>
-        <button class="btn btn-ghost" type="button" id="ws-signout">Sign out</button>
-      </span>
-    </div>
-
-    <main class="section" style="padding-top:28px;">
-      <p class="form-error mi-hide" id="rel-error" role="alert" style="margin-top:0;"></p>
-
-      <div id="rel-empty" class="card mi-hide">
-        <p class="muted" style="margin:0; text-align:center;">No builds published yet. Check back soon.</p>
-      </div>
-
-      <div id="rel-latest-wrap" class="mi-hide">
-        <div class="mi-grid" id="rel-latest"></div>
-      </div>
-    </main>
-
-    <footer class="footer">
-      <div class="footer-inner">
-        <div class="footer-brand"><img src="assets/logo-mark.svg" alt=""><span>&copy; 2026 Missionite</span></div>
-        <nav class="footer-links">
-          <a href="privacy.html">Privacy</a>
-          <a href="terms.html">Terms</a>
-        </nav>
-      </div>
-    </footer>
-  </div>
-</section>
-
-<!-- Auth substrate — strict load order (see js/supabase-config.js header). -->
-<script src="lib/auth_db/shared/vendor/supabase/supabase.min.js"></script>
-<script src="js/supabase-config.js"></script>
-<script src="lib/auth_db/shared/services/authService.js"></script>
-<script src="js/site-auth.js"></script>
-<script>
-(function () {
-  'use strict';
-
-  var $ = function (id) { return document.getElementById(id); };
-  var SA = window.SiteAuth;
-
-  var PLATFORM_LABEL = { mac: 'macOS', win: 'Windows' };
-  function platformLabel(p) { return PLATFORM_LABEL[p] || (p ? String(p) : 'Unknown'); }
-
-  var states = {
-    loading: $('state-loading'), signin: $('state-signin'),
-    recovery: $('state-recovery'), workspace: $('state-workspace')
-  };
-  function show(which) {
-    Object.keys(states).forEach(function (k) {
-      if (states[k]) states[k].classList.toggle('mi-hide', k !== which);
-    });
-  }
-  function setMsg(el, msg, on) { if (!el) return; el.textContent = msg || ''; el.classList.toggle('mi-hide', !on); }
-  function setErr(msg) { var el = $('rel-error'); if (!el) return; el.textContent = msg || ''; el.classList.toggle('mi-hide', !msg); }
-
-  // ------------------------------------------------------------------ sign-in
-  var signinForm = $('signin-form');
-  var emailInput = $('email');
-  var passwordInput = $('password');
-  var submitBtn = $('signin-submit');
-  var siErr = $('signin-error');
-  var siNote = $('signin-note');
-  var forgotToggle = $('forgot-toggle');
-  var passwordField = $('password-field');
-  var forgotMode = false;
-
-  signinForm.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    setMsg(siErr, '', false); setMsg(siNote, '', false);
-    var email = (emailInput.value || '').trim();
-    if (!SA.isValidEmail(email)) { setMsg(siErr, 'Please enter a valid email address.', true); return; }
-
-    if (forgotMode) {
-      submitBtn.disabled = true; submitBtn.textContent = 'Sending…';
-      var r = await SA.sendReset(email);
-      submitBtn.disabled = false; submitBtn.textContent = 'Sign in';
-      if (r.success) { setMsg(siNote, 'If an account exists for ' + email + ', a reset link is on its way.', true); exitForgotMode(); }
-      else { setMsg(siErr, r.error || 'Could not send the reset email.', true); }
-      return;
-    }
-
-    var password = passwordInput.value || '';
-    if (!password) { setMsg(siErr, 'Please enter your password.', true); return; }
-    submitBtn.disabled = true; submitBtn.textContent = 'Signing in…';
-    var res = await SA.signIn(email, password);
-    submitBtn.disabled = false; submitBtn.textContent = 'Sign in';
-    if (res && res.success) enterWorkspace(res.user && res.user.email ? res.user.email : email);
-    else setMsg(siErr, (res && res.error) || 'Sign in failed. Check your email and password.', true);
-  });
-
-  function enterForgotMode() {
-    forgotMode = true;
-    passwordField.classList.add('mi-hide'); passwordInput.required = false;
-    submitBtn.textContent = 'Send reset link'; forgotToggle.textContent = 'Back to sign in';
-    setMsg(siErr, '', false); setMsg(siNote, 'Enter your email and we’ll send a reset link.', true);
-    emailInput.focus();
-  }
-  function exitForgotMode() {
-    forgotMode = false;
-    passwordField.classList.remove('mi-hide'); passwordInput.required = true;
-    submitBtn.textContent = 'Sign in'; forgotToggle.textContent = 'Forgot password?';
-  }
-  forgotToggle.addEventListener('click', function () {
-    if (forgotMode) { exitForgotMode(); setMsg(siNote, '', false); } else { enterForgotMode(); }
-  });
-
-  // ------------------------------------------------------------------ recovery
-  var recoveryForm = $('recovery-form');
-  var recErr = $('recovery-error');
-  var recNote = $('recovery-note');
-  recoveryForm.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    setMsg(recErr, '', false); setMsg(recNote, '', false);
-    var pw = $('new-password').value || '';
-    var confirm = $('confirm-password').value || '';
-    if (pw.length < 12) { setMsg(recErr, 'Password must be at least 12 characters.', true); return; }
-    if (pw !== confirm) { setMsg(recErr, 'Passwords do not match.', true); return; }
-    var btn = $('recovery-submit');
-    btn.disabled = true; btn.textContent = 'Updating…';
-    var r = await SA.setNewPassword(pw);
-    btn.disabled = false; btn.textContent = 'Update password';
-    if (r && r.success) {
-      recoveryForm.reset(); btn.disabled = true;
-      $('recovery-continue').classList.remove('mi-hide');
-      setMsg(recNote, 'Password updated.', true);
-      try { history.replaceState(null, '', window.location.pathname); } catch (_) {}
-    } else {
-      setMsg(recErr, (r && r.error) || 'Could not update the password. The reset link may have expired — request a new one.', true);
-    }
-  });
-  $('recovery-continue').addEventListener('click', function () { enterWorkspace(SA.currentEmail()); });
-
-  // ------------------------------------------------------------------ workspace
-  $('ws-signout').addEventListener('click', async function () { await SA.signOut(); show('signin'); });
-
-  function latestCard(r) {
-    var esc = SA.escapeHtml;
-    var card = document.createElement('div');
-    card.className = 'card mi-platform';
-    card.innerHTML =
-      '<span class="badge">' + esc(platformLabel(r.platform)) + '</span>' +
-      '<h3 class="h-section">Version ' + esc(r.version) + '</h3>' +
-      '<div class="mi-meta muted">' +
-        '<span>' + esc(SA.formatBytes(r.file_size)) + '</span>' +
-        '<span>' + esc(SA.formatDate(r.published_at)) + '</span>' +
-      '</div>' +
-      (r.notes ? '<p class="muted">' + esc(r.notes) + '</p>' : '') +
-      '<button class="btn btn-primary mi-block" type="button" data-download data-release-id="' + esc(r.id) + '">' +
-        'Download for ' + esc(platformLabel(r.platform)) + '</button>';
-    return card;
-  }
-  // Only the latest build per platform is shown — no version history.
-  function renderReleases(rows) {
-    var latestWrap = $('rel-latest-wrap'), emptyEl = $('rel-empty');
-    if (!rows || rows.length === 0) {
-      emptyEl.classList.remove('mi-hide'); latestWrap.classList.add('mi-hide'); return;
-    }
-    emptyEl.classList.add('mi-hide');
-    var shown = {};   // platform -> newest row (rows arrive newest-first)
-    rows.forEach(function (r) { if (r.platform && !shown[r.platform]) shown[r.platform] = r; });
-    var latestEl = $('rel-latest'); latestEl.innerHTML = '';
-    var order = ['mac', 'win'].concat(Object.keys(shown).filter(function (p) { return p !== 'mac' && p !== 'win'; }));
-    var any = false;
-    order.forEach(function (p) { if (shown[p]) { latestEl.appendChild(latestCard(shown[p])); any = true; } });
-    latestWrap.classList.toggle('mi-hide', !any);
-  }
-  async function loadReleases() {
-    setErr('');
-    var client = SA.client();
-    if (!client) { setErr('Could not reach the release service. Refresh and try again.'); return; }
-    try {
-      var res = await client.from('releases')
-        .select('id,version,platform,file_size,sha256,notes,published_at')
-        .order('published_at', { ascending: false });
-      if (res.error) { console.error('[releases] query error:', res.error); setErr('Could not load releases right now. Please try again shortly.'); return; }
-      renderReleases(res.data || []);
-    } catch (e) { console.error('[releases] exception:', e); setErr('Could not load releases right now. Please try again shortly.'); }
-  }
-
-  function triggerDownload(url) {
-    var a = document.createElement('a'); a.href = url; a.rel = 'noopener';
-    document.body.appendChild(a); a.click(); a.remove();
-  }
-  async function requestDownload(releaseId, btn) {
-    setErr('');
-    var original = btn ? btn.textContent : '';
-    if (btn) { btn.disabled = true; btn.textContent = 'Preparing…'; }
-    try {
-      var token = await SA.freshAccessToken();
-      if (!token) { setErr('Your session has expired. Please sign in again.'); show('signin'); return; }
-      var resp = await fetch(SA.functionsUrl('get-download'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token, 'apikey': SA.anonKey() },
-        body: JSON.stringify({ release_id: releaseId })
-      });
-      var out = {};
-      try { out = await resp.json(); } catch (_) { out = {}; }
-      if (!resp.ok) {
-        if (resp.status === 401) { setErr('Your session has expired. Please sign in again.'); show('signin'); return; }
-        if (resp.status === 404) { setErr('That build is no longer available.'); return; }
-        setErr(out.error || ('Download failed (' + resp.status + '). Please try again.')); return;
-      }
-      if (!out.url) { setErr('The download link could not be created. Please try again.'); return; }
-      triggerDownload(out.url);
-    } catch (e) { console.error('[download] request error:', e); setErr('Could not start the download. Check your connection and try again.'); }
-    finally { if (btn) { btn.disabled = false; btn.textContent = original; } }
-  }
-  document.addEventListener('click', function (e) {
-    var btn = e.target && e.target.closest ? e.target.closest('[data-download]') : null;
-    if (!btn) return;
-    e.preventDefault();
-    var id = btn.getAttribute('data-release-id');
-    if (id) requestDownload(id, btn);
-  });
-
-  function enterWorkspace(email) {
-    var el = $('ws-email'); if (el) el.textContent = email || SA.currentEmail() || 'your account';
-    show('workspace');
-    loadReleases();
-  }
-
-  // ------------------------------------------------------------------ boot
-  (async function boot() {
-    var res = await SA.init();
-
-    if (SA.IS_RECOVERY) { show('recovery'); return; }
-
-    if (!res.configured) {
-      show('signin');
-      submitBtn.disabled = true; forgotToggle.disabled = true;
-      setMsg(siNote, 'Sign-in is temporarily unavailable. Please try again later.', true);
-      return;
-    }
-
-    if (SA.isAuthenticated()) enterWorkspace(SA.currentEmail());
-    else show('signin');
-
-    SA.onAuth(function (state) {
-      if (SA.IS_RECOVERY) return;
-      if (state.signedIn) { if (states.workspace.classList.contains('mi-hide')) enterWorkspace(state.email); }
-      else if (!forgotMode) show('signin');
-    });
-  })();
-})();
-</script>
+</footer>

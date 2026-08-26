@@ -1,9 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
 
-// No CORS, deliberately — the caller is a .NET HttpClient, not a browser.
-// The signature covers the stored payload bytes (verify before deserialising); payload is base64url unpadded, signature standard padded base64.
-
 const NONCE_MIN_BYTES = 16
 const NONCE_MAX_BYTES = 64
 const APP_VERSION_MAX_CHARS = 64

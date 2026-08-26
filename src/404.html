@@ -1,55 +1,38 @@
+<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lost in space — Missionite</title>
+<title>Not found — Missionite</title>
 <meta name="description" content="That page could not be found.">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14171A" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="styles.css">
 
 <style>
-  .lost {
-    min-height: 78vh;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    text-align: center;
+  .lost-wrap { min-height: 100vh; display: grid; place-items: center; }
+  .lost-main { max-width: 480px; width: 100%; padding: 24px; }
+  .lost-links {
+    border-top: 1px solid var(--hairline); margin-top: 36px; padding-top: 16px;
+    font-size: 14px; display: flex; gap: 18px;
   }
-  .lost img { width: 76px; height: 76px; margin-bottom: 1.6rem; }
-  .lost .code { font-size: .82rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin: 0 0 .7rem; }
-  .lost p.muted { max-width: 420px; margin: .6rem auto 1.8rem; }
+  .lost-links a { color: var(--muted); text-decoration: none; }
+  .lost-links a:hover { color: var(--text); }
 </style>
 
-<nav class="nav">
-  <div class="container nav-inner">
-    <a class="nav-brand" href="index.html">
-      <img src="assets/logo-mark.svg" alt="">
-      <span>Missionite</span>
-    </a>
-  </div>
-</nav>
-
-<main class="container">
-  <div class="lost">
-    <img src="assets/logo-mark.svg" alt="Missionite">
-    <p class="code">Error 404</p>
-    <h1 class="h-hero">Lost in space.</h1>
-    <p class="muted">The page you were looking for has drifted out of orbit.</p>
-    <a class="btn btn-primary" href="index.html">Back to home</a>
-  </div>
-</main>
-
-<footer class="footer">
-  <div class="container footer-inner">
-    <div class="footer-brand">
-      <img src="assets/logo-mark.svg" alt="">
-      <span>© 2026 Missionite</span>
-    </div>
-    <nav class="footer-links">
+<body class="themed">
+<div class="lost-wrap">
+  <main class="lost-main">
+    <p class="ld-eyebrow">404 &middot; Not found</p>
+    <h1>This page isn&rsquo;t in the document set.</h1>
+    <p class="ld-body">The address may have changed, or the link was wrong.</p>
+    <p style="margin-top:26px"><a class="btn btn-primary" href="index.html">Back to Missionite</a></p>
+    <div class="lost-links">
       <a href="privacy.html">Privacy</a>
       <a href="terms.html">Terms</a>
-    </nav>
-  </div>
-</footer>
+    </div>
+  </main>
+</div>

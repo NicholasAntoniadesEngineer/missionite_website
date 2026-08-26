@@ -1,4 +1,3 @@
--- User status
 SELECT *
   FROM public.subscriptions
  WHERE user_id = '<PASTE-UUID>';

@@ -16,10 +16,15 @@ Required env vars:
 Optional env vars:
   GH_RELEASES_REPO           default NicholasAntoniadesEngineer/ECSS_framework
   ECSS_DIST_DIR              default /Users/nicholasantoniades/Documents/GitHub/ECSS_framework/dist
+  MIN_VERSION                activation floor to set (e.g. 5.4). Omit to LEAVE THE
+                             FLOOR UNCHANGED — older builds keep activating and are
+                             nudged to upgrade. Set this only to retire old builds.
 
 Run this AFTER build/publish-github-release.sh (in the app repo) has uploaded the
-assets to the GitHub Release for <tag>. Registering also raises the minimum
-activatable version to <tag> on both platforms: older builds stop activating.
+assets to the GitHub Release for <tag>. Registering makes <tag> the latest
+version (which older builds are nudged toward). It no longer raises the floor on
+its own: every build at or above the floor stays activatable. Retire old builds
+deliberately by setting MIN_VERSION.
 USAGE
   exit 2
 }
@@ -99,9 +104,7 @@ for pair in "asset_id:$MAC_ID" "file_size:$MAC_SIZE" "asset_id:$WIN_ID" "file_si
   case "$val" in ''|*[!0-9]*) echo "Error: non-numeric ${pair%%:*} from GitHub: '$val'." >&2; exit 1 ;; esac
 done
 
-# GitHub dots-out spaces in asset names, so glob disk by "Missionite <TAG><suffix>" — matching on $MAC_NAME instead silently stores an empty sha256.
 sha_for_suffix() {
-  # Two local statements, never 'local a=.. b=..$a': under set -u the second RHS is expanded before the first local exists.
   local suffix="$1"
   local f="$DIST_DIR/Missionite ${TAG}${suffix}"
   if [ -f "$f" ]; then
@@ -160,15 +163,28 @@ current_floor() {
 MAC_FLOOR_WAS="$(current_floor mac)"
 WIN_FLOOR_WAS="$(current_floor win)"
 
+if [ -z "${MIN_VERSION:-}" ]; then
+  echo "" >&2
+  echo "Done. Registered Missionite ${VERSION} (tag ${TAG}) from ${REPO}:" >&2
+  echo "  macOS   : asset_id=${MAC_ID}  ${MAC_NAME}  (${MAC_SIZE} bytes)  sha256=${MAC_SHA:-<none>}" >&2
+  echo "  Windows : asset_id=${WIN_ID}  ${WIN_NAME}  (${WIN_SIZE} bytes)  sha256=${WIN_SHA:-<none>}" >&2
+  echo "  latest: ${VERSION}   floor unchanged: mac=${MAC_FLOOR_WAS} win=${WIN_FLOOR_WAS}" >&2
+  echo "  Builds at or above the floor keep activating and are nudged to upgrade to ${VERSION}." >&2
+  echo "  To retire older builds, re-run with MIN_VERSION=<version>." >&2
+  exit 0
+fi
+
+FLOOR="${MIN_VERSION#[vV]}"
+FLOOR_ESC="$(json_escape "$FLOOR")"
 POLICY_BODY="$(cat <<JSON
 [
-  {"platform":"mac","min_version":"${VERSION_ESC}","updated_at":"now"},
-  {"platform":"win","min_version":"${VERSION_ESC}","updated_at":"now"}
+  {"platform":"mac","min_version":"${FLOOR_ESC}","updated_at":"now"},
+  {"platform":"win","min_version":"${FLOOR_ESC}","updated_at":"now"}
 ]
 JSON
 )"
 
-echo "Raising the activation floor to ${VERSION} (mac + win) ..." >&2
+echo "Setting the activation floor to ${FLOOR} (mac + win) ..." >&2
 TMP_POLICY="$(mktemp)"
 HTTP_POLICY="$(curl -sS -o "$TMP_POLICY" -w '%{http_code}' -X POST \
   "${SUPABASE_URL}/rest/v1/app_policy?on_conflict=platform" \
@@ -179,13 +195,12 @@ HTTP_POLICY="$(curl -sS -o "$TMP_POLICY" -w '%{http_code}' -X POST \
   --data "$POLICY_BODY")"
 
 if [ "$HTTP_POLICY" -ge 300 ]; then
-  echo "Error: the floor was NOT raised (HTTP $HTTP_POLICY):" >&2
+  echo "Error: the floor was NOT set (HTTP $HTTP_POLICY):" >&2
   cat "$TMP_POLICY" >&2; echo >&2
   rm -f "$TMP_POLICY"
   echo "       The ${VERSION} catalog rows DID land, so downloads work — but the floor is" >&2
-  echo "       still mac=${MAC_FLOOR_WAS} win=${WIN_FLOOR_WAS}, so every older build keeps" >&2
-  echo "       activating. Set it by hand, BOTH platforms, with" >&2
-  echo "       supabase/queries/set-minimum-version.sql" >&2
+  echo "       still mac=${MAC_FLOOR_WAS} win=${WIN_FLOOR_WAS}. Set it by hand, BOTH platforms," >&2
+  echo "       with supabase/queries/set-minimum-version.sql" >&2
   exit 1
 fi
 rm -f "$TMP_POLICY"
@@ -194,6 +209,7 @@ echo "" >&2
 echo "Done. Registered Missionite ${VERSION} (tag ${TAG}) from ${REPO}:" >&2
 echo "  macOS   : asset_id=${MAC_ID}  ${MAC_NAME}  (${MAC_SIZE} bytes)  sha256=${MAC_SHA:-<none>}" >&2
 echo "  Windows : asset_id=${WIN_ID}  ${WIN_NAME}  (${WIN_SIZE} bytes)  sha256=${WIN_SHA:-<none>}" >&2
-echo "  floor: mac ${MAC_FLOOR_WAS} -> ${VERSION}" >&2
-echo "  floor: win ${WIN_FLOOR_WAS} -> ${VERSION}" >&2
-echo "  Builds older than ${VERSION} are refused at activation from now on." >&2
+echo "  latest: ${VERSION}" >&2
+echo "  floor: mac ${MAC_FLOOR_WAS} -> ${FLOOR}" >&2
+echo "  floor: win ${WIN_FLOOR_WAS} -> ${FLOOR}" >&2
+echo "  Builds older than ${FLOOR} are refused at activation; ${FLOOR}..${VERSION} are nudged." >&2

@@ -1,5 +1,3 @@
-// Load order: vendored supabase-js -> this file -> authService.js. This file stands in for the
-// submodule's own supabaseConfig.js, which must never be loaded alongside it.
 const SupabaseConfig = {
     PROJECT_URL: 'https://qqrenkzyucvfpanygdrb.supabase.co',
     PUBLISHABLE_API_KEY: 'sb_publishable_Ok92AbxGyQCMEcQ5UGkTRA_E9uUFpCZ',

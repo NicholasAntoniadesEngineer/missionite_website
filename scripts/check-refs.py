@@ -1,5 +1,3 @@
-"""Usage: python3 scripts/check-refs.py <site-root> — exits non-zero on any local href/src/import/url() that does not resolve inside the tree."""
-
 import os
 import re
 import sys
