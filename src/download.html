@@ -2,7 +2,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Download — Missionite</title>
 <meta name="description" content="Sign in to download the Missionite desktop app. Access is invite-only.">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14171A" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,6 +17,7 @@
   .mi-gate { min-height: 78vh; display: flex; flex-direction: column;
              align-items: center; justify-content: center; gap: 22px; padding: 40px 20px; }
   .mi-gate-brand { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .mi-gate-brand, .mi-bar-brand { color: var(--text); text-decoration: none; }
   .mi-gate-brand img { width: 44px; height: 44px; }
   .mi-gate-brand span { font-size: 1.05rem; font-weight: 500; letter-spacing: .2px; }
   .mi-card { width: 100%; max-width: 380px; }
@@ -44,15 +46,17 @@
   }
 </style>
 
+<body class="themed">
+
 <section id="state-loading" class="mi-gate" aria-live="polite">
   <p class="muted">Loading…</p>
 </section>
 
 <section id="state-signin" class="mi-gate mi-hide">
-  <div class="mi-gate-brand">
+  <a class="mi-gate-brand" href="index.html">
     <img src="assets/logo-mark.svg" alt="">
     <span>Missionite</span>
-  </div>
+  </a>
 
   <div class="card mi-card" aria-labelledby="signin-h">
     <h1 id="signin-h" class="h-section" style="margin-top:0;">Sign in</h1>
@@ -82,10 +86,10 @@
 </section>
 
 <section id="state-recovery" class="mi-gate mi-hide">
-  <div class="mi-gate-brand">
+  <a class="mi-gate-brand" href="index.html">
     <img src="assets/logo-mark.svg" alt="">
     <span>Missionite</span>
-  </div>
+  </a>
   <div class="card mi-card" aria-labelledby="recovery-h">
     <h1 id="recovery-h" class="h-section" style="margin-top:0;">Set a new password</h1>
     <p class="muted" style="margin-top:0;">At least 12 characters.</p>
@@ -109,7 +113,7 @@
 <section id="state-workspace" class="mi-hide">
   <div class="container">
     <div class="mi-bar">
-      <span class="mi-bar-brand"><img src="assets/logo-mark.svg" alt="">Missionite</span>
+      <a class="mi-bar-brand" href="index.html"><img src="assets/logo-mark.svg" alt="">Missionite</a>
       <span class="mi-who">
         <span class="mi-email" id="ws-email">…</span>
         <button class="btn btn-ghost" type="button" id="ws-signout">Sign out</button>
