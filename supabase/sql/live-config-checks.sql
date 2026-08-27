@@ -1,6 +1,3 @@
--- live-config-checks.sql — READ-ONLY audit that the LIVE project matches supabase/sql/schema.sql.
--- Paste the whole file into the Supabase SQL editor and Run — the last row is the SUMMARY verdict.
-
 WITH
 
 c0 AS (

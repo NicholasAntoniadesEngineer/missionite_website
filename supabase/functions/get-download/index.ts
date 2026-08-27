@@ -10,13 +10,79 @@ const corsHeaders = {
 }
 
 const GH_RELEASES_REPO = Deno.env.get('GH_RELEASES_REPO') ?? 'NicholasAntoniadesEngineer/ECSS_framework'
-const GH_RELEASES_TOKEN = Deno.env.get('GH_RELEASES_TOKEN') ?? ''
+const GH_RELEASES_TOKEN = (Deno.env.get('GH_RELEASES_TOKEN') ?? '').trim()
+
+const TOKEN_FIX =
+  'Mint a new fine-grained PAT (GitHub → Settings → Developer settings → Fine-grained tokens; ' +
+  'resource owner NicholasAntoniadesEngineer; only ECSS_framework; Contents: Read-only) and run: ' +
+  'supabase secrets set GH_RELEASES_TOKEN="<the PAT>"'
 
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
+}
+
+function tokenMissingMessage(): string {
+  return (
+    'Could not create the download link. The download broker\'s GH_RELEASES_TOKEN is empty. ' +
+    TOKEN_FIX
+  )
+}
+
+function tokenRejectedMessage(httpStatus: number): string {
+  return (
+    'Could not create the download link. GitHub rejected the download broker\'s token ' +
+    `(HTTP ${httpStatus}) — it is missing, expired, or revoked. GitHub often returns 404 ` +
+    'for a private repo when the token is dead. ' +
+    TOKEN_FIX
+  )
+}
+
+function staleAssetMessage(httpStatus: number): string {
+  return (
+    'Could not create the download link. The catalogued GitHub asset id is not on the ' +
+    `release (HTTP ${httpStatus}). The token is valid — re-run register-release.sh for ` +
+    'this tag after the GitHub release assets are in place.'
+  )
+}
+
+function githubFailureMessage(httpStatus: number): string {
+  return (
+    'Could not create the download link. GitHub did not return a signed file URL ' +
+    `(HTTP ${httpStatus}).`
+  )
+}
+
+type GithubGet = { status: number; location: string }
+
+async function githubGet(
+  url: string,
+  accept: string,
+  redirect: RequestRedirect,
+): Promise<GithubGet> {
+  const ghResp = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${GH_RELEASES_TOKEN}`,
+      'Accept': accept,
+      'User-Agent': 'missionite-get-download',
+    },
+    redirect,
+  })
+  const location = ghResp.headers.get('location') ?? ''
+  try { await ghResp.body?.cancel() } catch (_) { }
+  return { status: ghResp.status, location }
+}
+
+async function repoAccessStatus(): Promise<number> {
+  const { status } = await githubGet(
+    `https://api.github.com/repos/${GH_RELEASES_REPO}`,
+    'application/vnd.github+json',
+    'follow',
+  )
+  return status
 }
 
 serve(async (req) => {
@@ -51,12 +117,30 @@ serve(async (req) => {
     }
     const userId = authData.user.id
 
-    let body: { release_id?: string } = {}
+    let body: { release_id?: string; probe?: boolean } = {}
     try {
       body = await req.json()
     } catch (_) {
       return json({ error: 'Invalid JSON body' }, 400)
     }
+
+    if (body.probe === true) {
+      if (!GH_RELEASES_TOKEN) {
+        console.error('get-download: probe — GH_RELEASES_TOKEN is empty')
+        return json({ error: tokenMissingMessage() }, 502)
+      }
+      let repoStatus = 0
+      try {
+        repoStatus = await repoAccessStatus()
+      } catch (fetchErr) {
+        console.error('get-download: probe GitHub repo fetch failed:', fetchErr)
+        return json({ error: 'Could not reach the download provider' }, 502)
+      }
+      if (repoStatus === 200) return json({ ok: true }, 200)
+      console.error('get-download: probe GitHub repo status:', repoStatus)
+      return json({ error: tokenRejectedMessage(repoStatus) }, 502)
+    }
+
     const releaseId = (body.release_id ?? '').toString().trim()
     if (!releaseId) {
       return json({ error: 'release_id is required' }, 400)
@@ -80,7 +164,6 @@ serve(async (req) => {
       return json({ error: 'Unknown release' }, 404)
     }
 
-    // A download_events insert failure must never deny a valid download: log it and continue.
     const { error: logError } = await admin
       .from('download_events')
       .insert({ user_id: userId, release_id: release.id })
@@ -88,34 +171,50 @@ serve(async (req) => {
       console.error('get-download: download_events insert failed (continuing):', logError)
     }
 
+    if (!GH_RELEASES_TOKEN) {
+      console.error('get-download: GH_RELEASES_TOKEN is empty')
+      return json({ error: tokenMissingMessage() }, 502)
+    }
+
     const assetUrl = `https://api.github.com/repos/${GH_RELEASES_REPO}/releases/assets/${release.asset_id}`
     let ghStatus = 0
     let location = ''
-    // redirect:'manual' plus body.cancel(): we want only the 302's Location — following it would stream the whole multi-hundred-MB binary through this function.
     try {
-      const ghResp = await fetch(assetUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${GH_RELEASES_TOKEN}`,
-          'Accept': 'application/octet-stream',
-          'User-Agent': 'missionite-get-download',
-        },
-        redirect: 'manual',
-      })
-      ghStatus = ghResp.status
-      location = ghResp.headers.get('location') ?? ''
-      try { await ghResp.body?.cancel() } catch (_) { }
+      const asset = await githubGet(assetUrl, 'application/octet-stream', 'manual')
+      ghStatus = asset.status
+      location = asset.location
     } catch (fetchErr) {
       console.error('get-download: GitHub asset fetch failed:', fetchErr)
       return json({ error: 'Could not reach the download provider' }, 502)
     }
 
-    if (ghStatus !== 302 || !location) {
-      console.error('get-download: unexpected GitHub response status:', ghStatus)
-      return json({ error: 'Could not create the download link' }, 502)
+    if (ghStatus === 302 && location) {
+      return json({ url: location }, 200)
     }
 
-    return json({ url: location }, 200)
+    if (ghStatus === 401 || ghStatus === 403) {
+      console.error('get-download: GitHub rejected the releases token:', ghStatus)
+      return json({ error: tokenRejectedMessage(ghStatus) }, 502)
+    }
+
+    if (ghStatus === 404) {
+      let repoStatus = 0
+      try {
+        repoStatus = await repoAccessStatus()
+      } catch (fetchErr) {
+        console.error('get-download: GitHub repo check failed:', fetchErr)
+        return json({ error: tokenRejectedMessage(404) }, 502)
+      }
+      if (repoStatus === 200) {
+        console.error('get-download: catalogued asset missing:', release.asset_id)
+        return json({ error: staleAssetMessage(404) }, 502)
+      }
+      console.error('get-download: GitHub 404 on asset; repo status:', repoStatus)
+      return json({ error: tokenRejectedMessage(repoStatus || 404) }, 502)
+    }
+
+    console.error('get-download: unexpected GitHub response status:', ghStatus)
+    return json({ error: githubFailureMessage(ghStatus) }, 502)
   } catch (error) {
     console.error('get-download: unexpected error:', error)
     return json({ error: 'An unexpected error occurred' }, 500)

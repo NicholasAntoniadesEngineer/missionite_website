@@ -1,11 +1,9 @@
 (function () {
     'use strict';
 
-    // Read the hash BEFORE supabase-js parses and strips it, or recovery links look like normal loads.
     var _initialHash = (typeof window !== 'undefined' && window.location && window.location.hash) || '';
     var IS_RECOVERY = /(?:[#&?])type=recovery(?:&|$)/.test(_initialHash);
 
-    // AuthService hard-redirects signed-out visitors to a login page this site does not have; neutralise it.
     if (window.AuthService && typeof window.AuthService._redirectToSignIn === 'function') {
         window.AuthService._redirectToSignIn = function noRedirectOnMissionite() {};
     }

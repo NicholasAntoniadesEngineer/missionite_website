@@ -1,5 +1,3 @@
--- Missionite release catalog and activation decision; rationale, security model and re-run safety live in docs/SETUP.md §5.
-
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TABLE IF NOT EXISTS public.releases (
@@ -13,11 +11,6 @@ CREATE TABLE IF NOT EXISTS public.releases (
     notes         TEXT,
     published_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
-COMMENT ON TABLE  public.releases IS 'Published Missionite desktop builds: readable by any authenticated user, written only via the service role (register-release.sh).';
-COMMENT ON COLUMN public.releases.asset_id   IS 'GitHub Release asset numeric id, which the get-download edge function exchanges for a short-lived GitHub-signed URL rather than a public link.';
-COMMENT ON COLUMN public.releases.asset_name IS 'GitHub Release asset file name, shown for reference only — the download is brokered via asset_id, not this name.';
-COMMENT ON COLUMN public.releases.platform   IS 'Target platform: ''mac'' or ''win''.';
 
 CREATE INDEX IF NOT EXISTS idx_releases_published_at ON public.releases(published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_releases_platform_published ON public.releases(platform, published_at DESC);
@@ -39,8 +32,6 @@ CREATE TABLE IF NOT EXISTS public.download_events (
     downloaded_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-COMMENT ON TABLE public.download_events IS 'Audit log of one row per download URL issued by get-download, written only by the service role and unreadable by anon or authenticated.';
-
 CREATE INDEX IF NOT EXISTS idx_download_events_release ON public.download_events(release_id);
 CREATE INDEX IF NOT EXISTS idx_download_events_user ON public.download_events(user_id);
 CREATE INDEX IF NOT EXISTS idx_download_events_time ON public.download_events(downloaded_at DESC);
@@ -61,13 +52,6 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
 );
 
 ALTER TABLE public.subscriptions ADD COLUMN IF NOT EXISTS min_version_override TEXT;
-
-COMMENT ON TABLE  public.subscriptions IS 'Server-authoritative entitlement: operator-written only (dashboard/service role), a user may read their own row.';
-COMMENT ON COLUMN public.subscriptions.status             IS 'Only active and demo entitle activation (cancelled = revoked by the operator, expired = period elapsed).';
-COMMENT ON COLUMN public.subscriptions.tier               IS 'Feature tier carried into the signed payload; operator-written, never client-selectable.';
-COMMENT ON COLUMN public.subscriptions.current_period_end IS 'NOT NULL on purpose: the signed payload carries a non-nullable subscriptionEndUtc, so for open-ended access set a far date (e.g. 2099-01-01).';
-COMMENT ON COLUMN public.subscriptions.note               IS 'Free-text operator note; never returned to any client.';
-COMMENT ON COLUMN public.subscriptions.min_version_override IS 'Per-user minimum activatable build that overrides the app_policy floor; NULL means follow the global floor.';
 
 CREATE INDEX IF NOT EXISTS idx_subscriptions_status_period
     ON public.subscriptions(status, current_period_end);
@@ -114,8 +98,6 @@ ALTER TABLE public.activation_events ADD CONSTRAINT activation_events_outcome_ch
     CHECK (outcome IN ('granted', 'refused_inactive', 'refused_expired',
                        'refused_absent', 'refused_outdated', 'rate_limited'));
 
-COMMENT ON TABLE public.activation_events IS 'Audit + rate-limit ledger: one row per attempt (granted OR refused) so a refusal consumes a token, except refused_outdated which is ledgered without spending budget; no client grants.';
-
 CREATE INDEX IF NOT EXISTS idx_activation_events_user_time
     ON public.activation_events(user_id, occurred_at DESC);
 
@@ -127,9 +109,6 @@ CREATE TABLE IF NOT EXISTS public.app_policy (
     min_version  TEXT NOT NULL,
     updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
-COMMENT ON TABLE  public.app_policy IS 'Minimum activatable build per platform: a row is the floor, and no row at all means no floor (every build activates).';
-COMMENT ON COLUMN public.app_policy.min_version IS 'Must equal a releases.version exactly (no leading v), because the floor is compared by that release''s published_at; an unrecognised value fails OPEN.';
 
 ALTER TABLE public.app_policy ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.app_policy FROM anon, authenticated;
@@ -147,9 +126,9 @@ SET search_path = public
 AS $$
 DECLARE
     DAY_WINDOW    CONSTANT INTERVAL := INTERVAL '24 hours';
-    DAY_MAX       CONSTANT INTEGER  := 12;
+    DAY_MAX       CONSTANT INTEGER  := 40;
     BURST_WINDOW  CONSTANT INTERVAL := INTERVAL '10 minutes';
-    BURST_MAX     CONSTANT INTEGER  := 4;
+    BURST_MAX     CONSTANT INTEGER  := 12;
     OFFLINE_SPAN  CONSTANT INTERVAL := INTERVAL '14 days';
     v_now       TIMESTAMPTZ := NOW();
     v_day       INTEGER;
@@ -169,10 +148,10 @@ BEGIN
 
     SELECT count(*) INTO v_day   FROM activation_events
      WHERE user_id = p_user_id AND occurred_at > v_now - DAY_WINDOW
-       AND outcome <> 'refused_outdated';
+       AND outcome NOT IN ('refused_outdated', 'rate_limited');
     SELECT count(*) INTO v_burst FROM activation_events
      WHERE user_id = p_user_id AND occurred_at > v_now - BURST_WINDOW
-       AND outcome <> 'refused_outdated';
+       AND outcome NOT IN ('refused_outdated', 'rate_limited');
 
     IF v_day >= DAY_MAX OR v_burst >= BURST_MAX THEN
         INSERT INTO activation_events (user_id, outcome, app_version, client_ip)
@@ -248,8 +227,5 @@ $$;
 
 DROP FUNCTION IF EXISTS public.issue_activation(uuid, text, inet);
 
-COMMENT ON FUNCTION public.issue_activation(UUID, TEXT, INET, TEXT, TEXT) IS 'Server-side activation decision (rate cap, entitlement read, minimum-version floor, ledger insert, window/clock) called by the activate edge function with a JWT-verified user id; service_role EXECUTE only.';
-
--- Name anon and authenticated explicitly: Supabase grants EXECUTE on new public functions directly, so REVOKE FROM PUBLIC alone would leave any signed-in user able to mint activations for any account.
 REVOKE ALL ON FUNCTION public.issue_activation(UUID, TEXT, INET, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.issue_activation(UUID, TEXT, INET, TEXT, TEXT) TO service_role;
